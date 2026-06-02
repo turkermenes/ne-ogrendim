@@ -1,0 +1,11 @@
+# ============================================================
+# Namespace: gunluk
+# 'Bugün Ne Öğrendim?' micro-blog uygulaması için namespace.
+# Tüm kaynaklar bu namespace altında oluşturulur.
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gunluk
+  labels:
+    app: gunluk

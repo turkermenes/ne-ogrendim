@@ -1,0 +1,22 @@
+# ============================================================
+# Service: gunluk-backend-service
+# Backend API'sine cluster içinden erişim sağlayan ClusterIP servisi.
+# Frontend, bu servis üzerinden backend'e istek gönderir.
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: gunluk-backend-service
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: gunluk
+    component: backend
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP

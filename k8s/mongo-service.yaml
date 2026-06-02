@@ -1,0 +1,22 @@
+# ============================================================
+# Service: mongo-service
+# MongoDB'ye cluster içinden erişim sağlayan ClusterIP servisi.
+# Backend, MONGO_URI üzerinden bu servise bağlanır.
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: database
+spec:
+  type: ClusterIP
+  selector:
+    app: gunluk
+    component: database
+  ports:
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP

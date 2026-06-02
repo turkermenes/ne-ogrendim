@@ -1,0 +1,97 @@
+# ============================================================
+# NetworkPolicy: deny-all
+# Varsayılan olarak namespace içindeki tüm ingress trafiğini engeller.
+# Sadece aşağıda tanımlanan kurallar izin verir (zero-trust model).
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: gunluk
+  labels:
+    app: gunluk
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  # Ingress kuralı tanımlanmadığı için tüm gelen trafik engellenir.
+
+---
+# ============================================================
+# NetworkPolicy: allow-backend-to-mongo
+# Sadece backend pod'larının MongoDB'ye erişmesine izin verir.
+# Diğer tüm pod'ların veritabanına erişimi engellenir.
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-mongo
+  namespace: gunluk
+  labels:
+    app: gunluk
+spec:
+  podSelector:
+    matchLabels:
+      component: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              component: backend
+      ports:
+        - protocol: TCP
+          port: 27017
+
+---
+# ============================================================
+# NetworkPolicy: allow-frontend-to-backend
+# Sadece frontend pod'larının backend API'sine erişmesine izin verir.
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: gunluk
+  labels:
+    app: gunluk
+spec:
+  podSelector:
+    matchLabels:
+      component: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              component: frontend
+      ports:
+        - protocol: TCP
+          port: 3000
+
+---
+# ============================================================
+# NetworkPolicy: allow-external-to-frontend
+# Dış dünyadan frontend pod'larına HTTP trafiğine izin verir.
+# LoadBalancer veya Ingress üzerinden gelen trafik için gereklidir.
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-to-frontend
+  namespace: gunluk
+  labels:
+    app: gunluk
+spec:
+  podSelector:
+    matchLabels:
+      component: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 80

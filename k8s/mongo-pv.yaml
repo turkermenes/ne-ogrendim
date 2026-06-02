@@ -1,0 +1,26 @@
+# ============================================================
+# PersistentVolume: mongo-pv
+# MongoDB verilerini kalıcı olarak saklamak için kullanılır.
+# Local test ortamı için hostPath kullanılır.
+# GKE ortamında storageClassName: standard kullanılmalıdır.
+# ============================================================
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+  labels:
+    app: gunluk
+    component: database
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  # --- Local test ortamı için ---
+  storageClassName: manual
+  hostPath:
+    path: /data/mongo
+  # --- GKE ortamı için aşağıdaki satırları kullanın ---
+  # storageClassName: standard
+  # (hostPath yerine GKE dynamic provisioning kullanılır,
+  #  PV yerine doğrudan PVC ile storageClass: standard yeterlidir)

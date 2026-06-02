@@ -1,0 +1,30 @@
+# ============================================================
+# Ingress: gunluk-ingress
+# Frontend servisine HTTP trafiğini yönlendiren Ingress kaynağı.
+# Nginx Ingress Controller veya GKE Ingress ile kullanılabilir.
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gunluk-ingress
+  namespace: gunluk
+  labels:
+    app: gunluk
+  # annotations:
+    # --- Nginx Ingress Controller kullanıyorsanız aktif edin ---
+    # kubernetes.io/ingress.class: nginx
+    # --- GKE için aşağıdaki annotation kullanılabilir ---
+    # kubernetes.io/ingress.class: gce
+spec:
+  rules:
+    # --- Belirli bir domain kullanmak isterseniz host satırını aktif edin ---
+    # - host: gunluk.example.com
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gunluk-frontend-service
+                port:
+                  number: 80

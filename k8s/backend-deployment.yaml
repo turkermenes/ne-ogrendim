@@ -1,0 +1,64 @@
+# ============================================================
+# Deployment: gunluk-backend
+# Node.js backend API deployment'ı.
+# MongoDB'ye bağlanır, health check endpoint'leri içerir.
+# RollingUpdate stratejisi ile sıfır kesinti güncellemesi sağlar.
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gunluk-backend
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gunluk
+      component: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gunluk
+        component: backend
+    spec:
+      containers:
+        - name: gunluk-backend
+          image: europe-west1-docker.pkg.dev/bulut-bilisim-498217/gunluk-repo/gunluk-backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo-service:27017/gunluk"
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3000"
+          # Liveness probe: container'ın çalışıp çalışmadığını kontrol eder
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          # Readiness probe: container'ın trafik almaya hazır olup olmadığını kontrol eder
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi

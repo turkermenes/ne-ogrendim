@@ -1,0 +1,63 @@
+# ============================================================================
+# Cloud Build Yapılandırması - Bugün Ne Öğrendim? (Günlük)
+# ============================================================================
+# Google Cloud Build CI/CD pipeline yapılandırması.
+# Backend ve frontend imajlarını oluşturur, push eder ve GKE'ye dağıtır.
+# ============================================================================
+
+steps:
+  # Backend imajını build et
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:$SHORT_SHA', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:latest', './backend']
+
+  # Frontend imajını build et
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend:$SHORT_SHA', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend:latest', './frontend']
+
+  # Backend imajını push et
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend']
+
+  # Frontend imajını push et
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend']
+
+  # GKE cluster'a bağlan
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    args: ['prepare', '--cluster', '${_CLUSTER_NAME}', '--location', '${_ZONE}', '--project', '$PROJECT_ID']
+
+  # K8s manifest'leri uygula
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'k8s/', '-n', 'gunluk']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Backend deployment'ı güncelle
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['set', 'image', 'deployment/gunluk-backend', 'gunluk-backend=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:$SHORT_SHA', '-n', 'gunluk']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+  # Frontend deployment'ı güncelle
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['set', 'image', 'deployment/gunluk-frontend', 'gunluk-frontend=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend:$SHORT_SHA', '-n', 'gunluk']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:latest'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend:latest'
+
+substitutions:
+  _REGION: europe-west1
+  _REPO_NAME: gunluk-repo
+  _CLUSTER_NAME: k8s-proje-cluster
+  _ZONE: europe-west3-a
+
+options:
+  logging: CLOUD_LOGGING_ONLY

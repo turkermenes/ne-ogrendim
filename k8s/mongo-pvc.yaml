@@ -1,0 +1,21 @@
+# ============================================================
+# PersistentVolumeClaim: mongo-pvc
+# MongoDB deployment'ının kullandığı kalıcı depolama talebi.
+# storageClassName, PV ile eşleşmelidir.
+# ============================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # GKE ortamı için dynamic provisioning kullanıyoruz
+  storageClassName: standard-rwo
+  resources:
+    requests:
+      storage: 5Gi

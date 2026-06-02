@@ -1,0 +1,27 @@
+# ============================================================
+# HorizontalPodAutoscaler: gunluk-backend-hpa
+# Backend pod'larını CPU kullanımına göre otomatik ölçeklendirir.
+# CPU kullanımı %50'yi aştığında yeni pod'lar oluşturulur.
+# ============================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gunluk-backend-hpa
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: backend
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gunluk-backend
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

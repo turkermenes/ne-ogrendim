@@ -1,0 +1,45 @@
+# ============================================================
+# Deployment: mongo
+# MongoDB 6.0 veritabanı deployment'ı.
+# Veriler PVC üzerinden kalıcı olarak saklanır.
+# Tek replika ile çalışır (veritabanı tutarlılığı için).
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gunluk
+      component: database
+  template:
+    metadata:
+      labels:
+        app: gunluk
+        component: database
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:6.0
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: mongo-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc

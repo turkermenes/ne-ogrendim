@@ -1,0 +1,57 @@
+# ============================================================
+# Deployment: gunluk-frontend
+# React/Nginx frontend deployment'ı.
+# Statik dosyaları sunar, port 80 üzerinden çalışır.
+# RollingUpdate stratejisi ile sıfır kesinti güncellemesi sağlar.
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gunluk-frontend
+  namespace: gunluk
+  labels:
+    app: gunluk
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gunluk
+      component: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gunluk
+        component: frontend
+    spec:
+      containers:
+        - name: gunluk-frontend
+          image: europe-west1-docker.pkg.dev/bulut-bilisim-498217/gunluk-repo/gunluk-frontend:latest
+          ports:
+            - containerPort: 80
+          # Liveness probe: container'ın çalışıp çalışmadığını kontrol eder
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          # Readiness probe: container'ın trafik almaya hazır olup olmadığını kontrol eder
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

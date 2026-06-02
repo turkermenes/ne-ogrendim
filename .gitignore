@@ -1,0 +1,15 @@
+# ============================================================================
+# .gitignore - Bugün Ne Öğrendim? (Günlük)
+# ============================================================================
+
+# Bağımlılıklar
+node_modules/
+
+# Ortam değişkenleri (hassas bilgiler)
+.env
+
+# Log dosyaları
+*.log
+
+# macOS sistem dosyaları
+.DS_Store
