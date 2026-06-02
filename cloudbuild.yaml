@@ -22,16 +22,13 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '--all-tags', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-frontend']
 
-  # GKE cluster'a bağlan
-  - name: 'gcr.io/cloud-builders/gke-deploy'
-    args: ['prepare', '--cluster', '${_CLUSTER_NAME}', '--location', '${_ZONE}', '--project', '$PROJECT_ID']
-
   # K8s manifest'leri uygula
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'k8s/', '-n', 'gunluk']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+      - 'CLOUDSDK_CORE_PROJECT=${_GKE_PROJECT}'
 
   # Backend deployment'ı güncelle
   - name: 'gcr.io/cloud-builders/kubectl'
@@ -39,6 +36,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+      - 'CLOUDSDK_CORE_PROJECT=${_GKE_PROJECT}'
 
   # Frontend deployment'ı güncelle
   - name: 'gcr.io/cloud-builders/kubectl'
@@ -46,6 +44,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+      - 'CLOUDSDK_CORE_PROJECT=${_GKE_PROJECT}'
 
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/gunluk-backend:$SHORT_SHA'
@@ -58,6 +57,7 @@ substitutions:
   _REPO_NAME: gunluk-repo
   _CLUSTER_NAME: k8s-proje-cluster
   _ZONE: europe-west3-a
+  _GKE_PROJECT: k8s-proje-38
 
 options:
   logging: CLOUD_LOGGING_ONLY
